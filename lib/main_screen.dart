@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_marketplace_mobile/config/themes/media_resource.dart';
+import 'package:nft_marketplace_mobile/presentation/collection/pages/create_collection.dart';
+import 'package:nft_marketplace_mobile/presentation/event/pages/event_page.dart';
+import 'package:nft_marketplace_mobile/presentation/search/pages/search_page.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 
 import 'package:nft_marketplace_mobile/core/common/widgets/custom_bottom_nav_bar.dart';
@@ -14,9 +17,9 @@ class MainScreen extends StatelessWidget {
   List<Widget> _buildScreens() {
     return [
       const HomePage(),
-      const Text("2"),
-      const Text("2"),
-      const Text("2"),
+      const SearchPage(),
+      const CreateNFTScreen(),
+      const CreateCollectionScreen(),
     ];
   }
 
