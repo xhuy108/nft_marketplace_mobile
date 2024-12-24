@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_marketplace_mobile/config/themes/media_resource.dart';
-import 'package:nft_marketplace_mobile/presentation/collection/pages/create_collection.dart';
+import 'package:nft_marketplace_mobile/presentation/collection/pages/create_collection_page.dart';
 import 'package:nft_marketplace_mobile/presentation/event/pages/event_page.dart';
+import 'package:nft_marketplace_mobile/presentation/home/pages/marketplace_screen.dart';
 import 'package:nft_marketplace_mobile/presentation/search/pages/search_page.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
-
-import 'package:nft_marketplace_mobile/core/common/widgets/custom_bottom_nav_bar.dart';
-import 'package:nft_marketplace_mobile/presentation/home/pages/home_page.dart';
 
 class MainScreen extends StatelessWidget {
   MainScreen({super.key});
 
-  final PersistentTabController _controller = PersistentTabController();
+  final PersistentTabController _controller =
+      PersistentTabController(initialIndex: 0);
 
   List<Widget> _buildScreens() {
     return [
-      const HomePage(),
+      const MarketplaceScreen(),
       const SearchPage(),
       const CreateNFTScreen(),
-      const CreateCollectionScreen(),
+      const CreateCollectionPage(),
     ];
   }
 
@@ -28,6 +27,22 @@ class MainScreen extends StatelessWidget {
       PersistentBottomNavBarItem(
         icon: SvgPicture.asset(MediaResource.homeActiveIcon),
         inactiveIcon: SvgPicture.asset(MediaResource.homeIcon),
+        routeAndNavigatorSettings: RouteAndNavigatorSettings(
+          initialRoute: MarketplaceScreen.routeName,
+          routes: {
+            // CollectionDetailScreen.routeName: (context) =>
+            //     CollectionDetailScreen(
+            //       collection: NFTCollection(
+            //         name: '',
+            //         image: '',
+            //         floor: '',
+            //         volume: 0,
+            //         changePercentage: 0,
+            //         isVerified: false,
+            //       ),
+            //     ),
+          },
+        ),
       ),
       PersistentBottomNavBarItem(
         icon: SvgPicture.asset(MediaResource.searchActiveIcon),
@@ -46,38 +61,32 @@ class MainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: PersistentTabView(
-        context,
-        controller: _controller,
-        screens: _buildScreens(),
-        items: _navBarsItems(),
-        handleAndroidBackButtonPress: true, // Default is true.
-        resizeToAvoidBottomInset:
-            true, // This needs to be true if you want to move up the screen on a non-scrollable screen when keyboard appears. Default is true.
-        stateManagement: true, // Default is true.
-        hideNavigationBarWhenKeyboardAppears: true,
-        popBehaviorOnSelectedNavBarItemPress: PopBehavior.all,
-        backgroundColor: Colors.white,
-        isVisible: true,
-        animationSettings: const NavBarAnimationSettings(
-          navBarItemAnimation: ItemAnimationSettings(
-            // Navigation Bar's items animation properties.
-            duration: Duration(milliseconds: 400),
-            curve: Curves.ease,
-          ),
-          screenTransitionAnimation: ScreenTransitionAnimationSettings(
-            // Screen transition animation on change of selected tab.
-            animateTabTransition: true,
-            duration: Duration(milliseconds: 200),
-            screenTransitionAnimationType: ScreenTransitionAnimationType.fadeIn,
-          ),
+    return PersistentTabView(
+      context,
+      controller: _controller,
+      screens: _buildScreens(),
+      items: _navBarsItems(),
+      handleAndroidBackButtonPress: true,
+      resizeToAvoidBottomInset: true,
+      hideNavigationBarWhenKeyboardAppears: true,
+      popBehaviorOnSelectedNavBarItemPress: PopBehavior.all,
+      backgroundColor: Colors.white,
+      animationSettings: const NavBarAnimationSettings(
+        navBarItemAnimation: ItemAnimationSettings(
+          // Navigation Bar's items animation properties.
+          duration: Duration(milliseconds: 400),
+          curve: Curves.ease,
         ),
-        confineToSafeArea: true,
-        navBarHeight: kBottomNavigationBarHeight,
-        navBarStyle:
-            NavBarStyle.style3, // Choose the nav bar style with this property
+        screenTransitionAnimation: ScreenTransitionAnimationSettings(
+          // Screen transition animation on change of selected tab.
+          animateTabTransition: true,
+          duration: Duration(milliseconds: 200),
+          screenTransitionAnimationType: ScreenTransitionAnimationType.fadeIn,
+        ),
       ),
+      navBarHeight: kBottomNavigationBarHeight,
+      navBarStyle:
+          NavBarStyle.style3, // Choose the nav bar style with this property
     );
   }
 }
