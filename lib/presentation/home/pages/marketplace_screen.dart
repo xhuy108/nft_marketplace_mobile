@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:nft_marketplace_mobile/config/themes/app_palette.dart';
@@ -23,10 +25,30 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   String selectedTimeFilter = '24h';
   String selectedChainFilter = 'All chains';
   String selectedCategoryFilter = 'All categories';
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
+    _loadCollections();
+    _startRefreshTimer();
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startRefreshTimer() {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      if (mounted) {
+        _loadCollections();
+      }
+    });
+  }
+
+  void _loadCollections() {
     context.read<CollectionBloc>().add(LoadCollections());
   }
 

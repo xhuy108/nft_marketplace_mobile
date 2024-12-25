@@ -21,13 +21,11 @@ class PinataService {
 
       var request = http.MultipartRequest('POST', uri);
 
-      // Add headers
       request.headers.addAll({
         'pinata_api_key': _apiKey,
         'pinata_secret_api_key': _apiSecret,
       });
 
-      // Add file
       request.files.add(
         http.MultipartFile.fromBytes(
           'file',
@@ -36,13 +34,8 @@ class PinataService {
         ),
       );
 
-      // Add metadata
       request.fields['pinataMetadata'] = json.encode({
         'name': 'NFTCollection_${DateTime.now().millisecondsSinceEpoch}',
-      });
-
-      request.fields['pinataOptions'] = json.encode({
-        'cidVersion': 1,
       });
 
       final response = await request.send();
@@ -75,9 +68,6 @@ class PinataService {
           'pinataMetadata': {
             'name':
                 'NFTCollection_Metadata_${DateTime.now().millisecondsSinceEpoch}',
-          },
-          'pinataOptions': {
-            'cidVersion': 1,
           },
         }),
       );
