@@ -2,16 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_marketplace_mobile/config/themes/media_resource.dart';
 import 'package:nft_marketplace_mobile/presentation/collection/pages/create_collection_page.dart';
-import 'package:nft_marketplace_mobile/presentation/event/pages/event_page.dart';
 import 'package:nft_marketplace_mobile/presentation/home/pages/marketplace_screen.dart';
+import 'package:nft_marketplace_mobile/presentation/nft/pages/create_nft_screen.dart';
 import 'package:nft_marketplace_mobile/presentation/search/pages/search_page.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 
 class MainScreen extends StatelessWidget {
-  MainScreen({super.key});
+  final int initialIndex;
 
-  final PersistentTabController _controller =
-      PersistentTabController(initialIndex: 0);
+  MainScreen({
+    super.key,
+    this.initialIndex = 0,
+  });
+
+  late final PersistentTabController _controller =
+      PersistentTabController(initialIndex: initialIndex);
 
   List<Widget> _buildScreens() {
     return [

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:gap/gap.dart';
+import 'package:nft_marketplace_mobile/domain/entities/market_item.dart';
 import 'package:nft_marketplace_mobile/domain/entities/nft_collection.dart';
+import 'package:nft_marketplace_mobile/presentation/collection/bloc/collection_items_bloc/collection_items_bloc.dart';
 import 'package:nft_marketplace_mobile/presentation/nft_item/pages/item_detail_screen.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 
@@ -25,6 +30,10 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+    // Load NFT items when screen initializes
+    context.read<CollectionItemsBloc>().add(
+          LoadCollectionItems(collectionAddress: widget.collection.address),
+        );
   }
 
   @override
@@ -87,10 +96,21 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen>
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.asset(
-                          widget.collection.baseURI,
-                          fit: BoxFit.cover,
-                        ),
+                        child: widget.collection.image != null
+                            ? Image.network(
+                                widget.collection.image!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.grey[300],
+                                    child: const Icon(Icons.image),
+                                  );
+                                },
+                              )
+                            : Container(
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.image),
+                              ),
                       ),
                     ),
                   ),
@@ -101,20 +121,60 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen>
           body: TabBarView(
             controller: _tabController,
             children: [
-              // Items tab
-              GridView.builder(
-                padding: const EdgeInsets.all(16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 0.8,
-                ),
-                itemBuilder: (context, index) => _buildItemCard(),
-                itemCount: 10,
+              // Items tab with BLoC integration
+              BlocBuilder<CollectionItemsBloc, CollectionItemsState>(
+                builder: (context, state) {
+                  if (state is CollectionItemsLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (state is CollectionItemsError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(state.message),
+                          ElevatedButton(
+                            onPressed: () {
+                              context.read<CollectionItemsBloc>().add(
+                                    LoadCollectionItems(
+                                      collectionAddress:
+                                          widget.collection.address,
+                                    ),
+                                  );
+                            },
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  if (state is CollectionItemsLoaded) {
+                    if (state.items.isEmpty) {
+                      return const Center(child: Text('No items found'));
+                    }
+
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                        childAspectRatio: 0.7,
+                      ),
+                      itemBuilder: (context, index) =>
+                          _buildItemCard(state.items[index]),
+                      itemCount: state.items.length,
+                    );
+                  }
+
+                  return const Center(child: Text('No items available'));
+                },
               ),
 
-              // Activity tab
+              // Activity tab remains the same
               const Center(child: Text('Activity Content')),
             ],
           ),
@@ -123,6 +183,98 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen>
     );
   }
 
+  Widget _buildItemCard(MarketItem item) {
+    return GestureDetector(
+      onTap: () {
+        // Convert MarketItem to NFTItem for detail screen
+        final nftItem = NFTItem(
+          name: item.metadata?.name ?? '#${item.tokenId}',
+          image: item.metadata?.imageUrl ?? 'assets/images/placeholder.png',
+          price: '${item.formattedPrice} ETH',
+          collectionName: widget.collection.name,
+        );
+
+        PersistentNavBarNavigator.pushNewScreen(
+          context,
+          screen: ItemDetailScreen(item: nftItem),
+          withNavBar: true,
+          pageTransitionAnimation: PageTransitionAnimation.cupertino,
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
+              child: item.metadata?.imageUrl != null
+                  ? Image.network(
+                      item.metadata!.imageUrl,
+                      width: double.infinity,
+                      height: 160,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: double.infinity,
+                          height: 160,
+                          color: Colors.grey[300],
+                          child: Icon(
+                            Icons.image,
+                            color: Colors.grey[400],
+                            size: 50,
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      width: double.infinity,
+                      height: 160,
+                      color: Colors.grey[300],
+                      child: Icon(
+                        Icons.image,
+                        color: Colors.grey[400],
+                        size: 50,
+                      ),
+                    ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.metadata?.name ?? '#${item.tokenId}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    maxLines: 1,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.isOnSale
+                        ? '${item.formattedPrice} ETH'
+                        : 'Not for sale',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Keep your existing UI building methods
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.blue,
@@ -200,7 +352,7 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen>
               children: [
                 const TextSpan(text: 'By '),
                 TextSpan(
-                  text: 'Courtyard ',
+                  text: widget.collection.owner,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const WidgetSpan(
@@ -211,79 +363,6 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen>
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildCollectionStats() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 8,
-      ),
-      child: Column(
-        children: [
-          // First row with three evenly spaced columns
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                flex: 1,
-                child: _buildStatItemColumn('1,59K ETH', 'total volume'),
-              ),
-              Expanded(
-                flex: 1,
-                child: _buildStatItemColumn('18 MATIC', 'floor price'),
-              ),
-              Expanded(
-                flex: 1,
-                child: _buildStatItemColumn('0,0023 ETH', 'best offer'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Second row with three evenly spaced columns
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                flex: 1,
-                child: _buildStatItemColumn('1.93%', 'listed'),
-              ),
-              Expanded(
-                flex: 1,
-                child: _buildStatItemColumn('6,12', 'owners'),
-              ),
-              Expanded(
-                flex: 1,
-                child: _buildStatItemColumn('0,08%', 'unique owners'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatItemColumn(String value, String label) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
     );
   }
 
@@ -395,6 +474,79 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen>
     );
   }
 
+  Widget _buildCollectionStats() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8,
+      ),
+      child: Column(
+        children: [
+          // First row with three evenly spaced columns
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                flex: 1,
+                child: _buildStatItemColumn('1,59K ETH', 'total volume'),
+              ),
+              Expanded(
+                flex: 1,
+                child: _buildStatItemColumn('18 MATIC', 'floor price'),
+              ),
+              Expanded(
+                flex: 1,
+                child: _buildStatItemColumn('0,0023 ETH', 'best offer'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Second row with three evenly spaced columns
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                flex: 1,
+                child: _buildStatItemColumn('1.93%', 'listed'),
+              ),
+              Expanded(
+                flex: 1,
+                child: _buildStatItemColumn('6,12', 'owners'),
+              ),
+              Expanded(
+                flex: 1,
+                child: _buildStatItemColumn('0,08%', 'unique owners'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItemColumn(String value, String label) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildTabBar() {
     return Material(
       color: Colors.white,
@@ -412,71 +564,6 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen>
                   ),
                 ))
             .toList(),
-      ),
-    );
-  }
-
-  Widget _buildItemCard() {
-    final item = NFTItem(
-      name: 'Memories of Digital D...',
-      image: 'assets/images/memories.jpg',
-      price: '18 MATIC',
-      collectionName: widget.collection.name,
-    );
-
-    return GestureDetector(
-      onTap: () {
-        PersistentNavBarNavigator.pushNewScreen(
-          context,
-          screen: ItemDetailScreen(item: item),
-          withNavBar: true, // Keep bottom nav bar visible
-          pageTransitionAnimation: PageTransitionAnimation.cupertino,
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
-              child: Image.asset(
-                item.image,
-                width: double.infinity,
-                height: 160,
-                fit: BoxFit.cover,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    maxLines: 1,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.price,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -1,9 +1,13 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:nft_marketplace_mobile/config/env_config.dart';
 import 'package:nft_marketplace_mobile/core/services/pinata_service.dart';
 import 'package:nft_marketplace_mobile/core/services/wallet_service.dart';
 import 'package:nft_marketplace_mobile/domain/repositories/collection_repository.dart';
+import 'package:nft_marketplace_mobile/domain/repositories/market_item_repository.dart';
 import 'package:nft_marketplace_mobile/presentation/collection/bloc/collection_bloc/collection_bloc.dart';
+import 'package:nft_marketplace_mobile/presentation/collection/bloc/collection_items_bloc/collection_items_bloc.dart';
 import 'package:nft_marketplace_mobile/presentation/collection/bloc/create_collection_bloc/create_collection_bloc.dart';
+import 'package:nft_marketplace_mobile/presentation/nft/bloc/create_market_item_bloc.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
@@ -21,9 +25,15 @@ Future<void> initializeDependencies() async {
   // Repositories
   // Initialize WalletService
   final walletService = WalletService(
-    web3client: getIt<Web3Client>(),
+    web3client: web3Client,
   );
-  await walletService.initializeFromStoredKey();
+
+  // Optionally initialize with a default private key from .env
+  final defaultPrivateKey = dotenv.env['ETHEREUM_PRIVATE_KEY'];
+  if (defaultPrivateKey != null) {
+    await walletService.connectWithPrivateKey(defaultPrivateKey);
+  }
+
   getIt.registerSingleton<WalletService>(walletService);
 
   // Initialize PinataService
@@ -35,6 +45,7 @@ Future<void> initializeDependencies() async {
     marketplaceAddress: EnvConfig.marketplaceAddress,
     pinataService: getIt<PinataService>(),
   );
+
   getIt.registerSingleton<CollectionRepository>(collectionRepository);
 
   // Add other repositories here
@@ -48,6 +59,22 @@ Future<void> initializeDependencies() async {
   // Add to initializeDependencies()
   getIt.registerFactory<CreateCollectionBloc>(
     () => CreateCollectionBloc(repository: getIt<CollectionRepository>()),
+  );
+
+  getIt.registerFactory<CollectionItemsBloc>(
+    () => CollectionItemsBloc(repository: getIt<CollectionRepository>()),
+  );
+
+  final marketItemRepository = await MarketItemRepository.create(
+    client: getIt<Web3Client>(),
+    marketplaceAddress: EnvConfig.marketplaceAddress,
+    pinataService: getIt<PinataService>(),
+  );
+
+  getIt.registerSingleton<MarketItemRepository>(marketItemRepository);
+
+  getIt.registerFactory<CreateMarketItemBloc>(
+    () => CreateMarketItemBloc(repository: getIt<MarketItemRepository>()),
   );
 
   // Add other blocs here

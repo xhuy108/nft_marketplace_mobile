@@ -21,29 +21,19 @@ class CreateCollectionLoading extends CreateCollectionState {
 }
 
 class CreateCollectionSuccess extends CreateCollectionState {
-  final String collectionAddress;
-  final String imageUrl;
-  final String metadataUrl;
+  final Collection collection;
 
-  const CreateCollectionSuccess({
-    required this.collectionAddress,
-    required this.imageUrl,
-    required this.metadataUrl,
-  });
+  const CreateCollectionSuccess(this.collection);
 
   @override
-  List<Object> get props => [collectionAddress, imageUrl, metadataUrl];
+  List<Object> get props => [collection];
 }
 
 class CreateCollectionFailure extends CreateCollectionState {
-  final String error;
-  final String? technicalDetails;
+  final String message;
 
-  const CreateCollectionFailure(
-    this.error, {
-    this.technicalDetails,
-  });
+  const CreateCollectionFailure(this.message);
 
   @override
-  List<Object> get props => [error, technicalDetails ?? ''];
+  List<Object> get props => [message];
 }
