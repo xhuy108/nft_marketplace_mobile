@@ -6,6 +6,7 @@ import 'package:nft_marketplace_mobile/presentation/collection/bloc/create_colle
 import 'package:nft_marketplace_mobile/presentation/collection/bloc/user_collection_bloc/user_collection_bloc.dart';
 import 'package:nft_marketplace_mobile/presentation/nft/bloc/create_market_item_bloc.dart';
 import 'package:nft_marketplace_mobile/presentation/profile/bloc/profile_bloc.dart';
+import 'package:nft_marketplace_mobile/presentation/search/bloc/search_collection_bloc.dart';
 
 import '../../presentation/collection/bloc/collection_bloc/collection_bloc.dart';
 
@@ -38,6 +39,9 @@ class BlocProviders extends StatelessWidget {
         ),
         BlocProvider<UserCollectionBloc>(
           create: (context) => GetIt.instance<UserCollectionBloc>(),
+        ),
+        BlocProvider<SearchCollectionBloc>(
+          create: (context) => GetIt.instance<SearchCollectionBloc>(),
         ),
         // Add other BlocProviders here
         // BlocProvider<AnotherBloc>(
