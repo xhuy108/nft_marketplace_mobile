@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:nft_marketplace_mobile/presentation/collection/bloc/collection_items_bloc/collection_items_bloc.dart';
 import 'package:nft_marketplace_mobile/presentation/collection/bloc/create_collection_bloc/create_collection_bloc.dart';
+import 'package:nft_marketplace_mobile/presentation/collection/bloc/user_collection_bloc/user_collection_bloc.dart';
 import 'package:nft_marketplace_mobile/presentation/nft/bloc/create_market_item_bloc.dart';
+import 'package:nft_marketplace_mobile/presentation/profile/bloc/profile_bloc.dart';
 
 import '../../presentation/collection/bloc/collection_bloc/collection_bloc.dart';
 
@@ -30,7 +32,13 @@ class BlocProviders extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => GetIt.I<CollectionItemsBloc>(),
-        )
+        ),
+        BlocProvider<ProfileBloc>(
+          create: (context) => GetIt.I<ProfileBloc>()..add(LoadProfile()),
+        ),
+        BlocProvider<UserCollectionBloc>(
+          create: (context) => GetIt.instance<UserCollectionBloc>(),
+        ),
         // Add other BlocProviders here
         // BlocProvider<AnotherBloc>(
         //   create: (context) => GetIt.instance<AnotherBloc>(),

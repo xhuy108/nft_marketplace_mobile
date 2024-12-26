@@ -6,6 +6,8 @@ import 'package:nft_marketplace_mobile/domain/entities/nft_collection.dart';
 import 'package:nft_marketplace_mobile/domain/repositories/collection_repository.dart';
 import 'package:web3dart/web3dart.dart';
 
+import '../../../profile/bloc/profile_bloc.dart';
+
 part 'create_collection_event.dart';
 part 'create_collection_state.dart';
 
@@ -35,13 +37,14 @@ class CreateCollectionBloc
         credentials: event.credentials,
       );
 
-      print(collectionAddress);
-
       emit(const CreateCollectionLoading(
           message: 'Fetching collection details...'));
 
       final collection =
           await repository.getCollectionDetails(collectionAddress);
+
+      // Add RefreshProfile event to ProfileBloc
+
       emit(CreateCollectionSuccess(collection));
     } catch (e) {
       String errorMessage = 'Failed to create collection';

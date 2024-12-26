@@ -47,6 +47,49 @@ class MarketItemRepository {
     return _pinataService.uploadJson(metadata);
   }
 
+  Future<void> purchaseMarketItem({
+    required String collectionAddress,
+    required BigInt tokenId,
+    required BigInt price,
+    required Credentials credentials,
+  }) async {
+    try {
+      // Get contract function
+      final function = _marketplaceContract.function('createMarketSale');
+
+      // Create transaction
+      final transaction = Transaction.callContract(
+        contract: _marketplaceContract,
+        function: function,
+        parameters: [
+          EthereumAddress.fromHex(collectionAddress),
+          tokenId,
+        ],
+        value: EtherAmount.fromBigInt(EtherUnit.wei, price),
+      );
+
+      // Send transaction
+      final txHash = await _client.sendTransaction(
+        credentials,
+        transaction,
+        chainId: 31337, // Your network chain ID
+      );
+
+      // Wait for transaction receipt
+      final receipt = await _client.getTransactionReceipt(txHash);
+      if (receipt == null) {
+        throw Exception('Purchase transaction failed: No receipt received');
+      }
+
+      // Verify the transaction was successful
+      if (!receipt.status!) {
+        throw Exception('Purchase transaction failed');
+      }
+    } catch (e) {
+      throw Exception('Failed to purchase market item: $e');
+    }
+  }
+
   Future<BigInt> createMarketItem({
     required String collectionAddress,
     required String tokenURI,
@@ -67,6 +110,7 @@ class MarketItemRepository {
 
       // Mint NFT
       final mintFunction = nftContract.function('mint');
+
       final mintData = mintFunction.encodeCall([
         EthereumAddress.fromHex(credentials.address.hex),
         tokenURI,

@@ -11,22 +11,34 @@ class CollectionInitial extends CollectionState {}
 
 class CollectionLoading extends CollectionState {}
 
+class CategoriesLoaded extends CollectionState {
+  final List<String> categories;
+
+  const CategoriesLoaded({required this.categories});
+
+  @override
+  List<Object> get props => [categories];
+}
+
 class CollectionLoaded extends CollectionState {
   final List<Collection> collections;
+  final List<Collection> filteredCollections;
   final String selectedTimeFilter;
   final String selectedChainFilter;
   final String selectedCategoryFilter;
 
   const CollectionLoaded({
     required this.collections,
+    List<Collection>? filteredCollections,
     this.selectedTimeFilter = '24h',
     this.selectedChainFilter = 'All chains',
     this.selectedCategoryFilter = 'All categories',
-  });
+  }) : filteredCollections = filteredCollections ?? collections;
 
   @override
   List<Object> get props => [
         collections,
+        filteredCollections,
         selectedTimeFilter,
         selectedChainFilter,
         selectedCategoryFilter,
@@ -34,12 +46,14 @@ class CollectionLoaded extends CollectionState {
 
   CollectionLoaded copyWith({
     List<Collection>? collections,
+    List<Collection>? filteredCollections,
     String? selectedTimeFilter,
     String? selectedChainFilter,
     String? selectedCategoryFilter,
   }) {
     return CollectionLoaded(
       collections: collections ?? this.collections,
+      filteredCollections: filteredCollections ?? this.filteredCollections,
       selectedTimeFilter: selectedTimeFilter ?? this.selectedTimeFilter,
       selectedChainFilter: selectedChainFilter ?? this.selectedChainFilter,
       selectedCategoryFilter:
@@ -55,4 +69,13 @@ class CollectionError extends CollectionState {
 
   @override
   List<Object> get props => [message];
+}
+
+class UserCollectionsLoaded extends CollectionState {
+  final List<Collection> collections;
+
+  const UserCollectionsLoaded({required this.collections});
+
+  @override
+  List<Object> get props => [collections];
 }
