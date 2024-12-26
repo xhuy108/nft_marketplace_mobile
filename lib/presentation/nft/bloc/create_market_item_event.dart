@@ -27,3 +27,20 @@ class CreateMarketItemSubmitted extends CreateMarketItemEvent {
   @override
   List<Object> get props => [name, description, collection, imageFile, price];
 }
+
+class PurchaseMarketItem extends CreateMarketItemEvent {
+  final String collectionAddress;
+  final BigInt tokenId;
+  final BigInt price;
+  final Credentials credentials;
+
+  const PurchaseMarketItem({
+    required this.collectionAddress,
+    required this.tokenId,
+    required this.price,
+    required this.credentials,
+  });
+
+  @override
+  List<Object> get props => [collectionAddress, tokenId, price];
+}

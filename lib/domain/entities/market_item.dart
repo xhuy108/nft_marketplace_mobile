@@ -1,5 +1,4 @@
 // lib/domain/entities/market_item.dart
-import 'dart:convert';
 import 'package:equatable/equatable.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart' as http;

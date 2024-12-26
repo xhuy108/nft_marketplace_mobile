@@ -4,6 +4,7 @@ import 'package:nft_marketplace_mobile/config/themes/media_resource.dart';
 import 'package:nft_marketplace_mobile/presentation/collection/pages/create_collection_page.dart';
 import 'package:nft_marketplace_mobile/presentation/home/pages/marketplace_screen.dart';
 import 'package:nft_marketplace_mobile/presentation/nft/pages/create_nft_screen.dart';
+import 'package:nft_marketplace_mobile/presentation/profile/pages/profile_screen.dart';
 import 'package:nft_marketplace_mobile/presentation/search/pages/search_page.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 
@@ -23,7 +24,7 @@ class MainScreen extends StatelessWidget {
       const MarketplaceScreen(),
       const SearchPage(),
       const CreateNFTScreen(),
-      const CreateCollectionPage(),
+      const ProfileScreen(),
     ];
   }
 

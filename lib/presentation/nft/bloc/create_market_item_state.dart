@@ -35,3 +35,20 @@ class CreateMarketItemFailure extends CreateMarketItemState {
   @override
   List<Object> get props => [message];
 }
+
+class PurchaseMarketItemLoading extends CreateMarketItemState {
+  const PurchaseMarketItemLoading();
+}
+
+class PurchaseMarketItemSuccess extends CreateMarketItemState {
+  const PurchaseMarketItemSuccess();
+}
+
+class PurchaseMarketItemFailure extends CreateMarketItemState {
+  final String message;
+
+  const PurchaseMarketItemFailure(this.message);
+
+  @override
+  List<Object> get props => [message];
+}

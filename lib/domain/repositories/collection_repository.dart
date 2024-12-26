@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:nft_marketplace_mobile/core/services/pinata_service.dart';
+import 'package:nft_marketplace_mobile/core/services/wallet_service.dart';
+import 'package:nft_marketplace_mobile/core/services/wallet_storage_service.dart';
 import 'package:nft_marketplace_mobile/domain/entities/market_item.dart';
 import 'package:nft_marketplace_mobile/domain/entities/nft_collection.dart';
 import 'package:web3dart/web3dart.dart';
@@ -13,21 +15,29 @@ class CollectionRepository {
   final DeployedContract _contract;
   final PinataService _pinataService;
   final EthereumAddress _marketplaceAddress;
+  final WalletService _walletService;
+  final WalletStorageService _storageService;
 
   CollectionRepository._({
     required Web3Client client,
     required String marketplaceAddress,
     required DeployedContract contract,
     required PinataService pinataService,
+    required WalletService walletService,
+    required WalletStorageService storageService,
   })  : _client = client,
         _contract = contract,
         _pinataService = pinataService,
-        _marketplaceAddress = EthereumAddress.fromHex(marketplaceAddress);
+        _marketplaceAddress = EthereumAddress.fromHex(marketplaceAddress),
+        _walletService = walletService,
+        _storageService = storageService;
 
   static Future<CollectionRepository> create({
     required Web3Client client,
     required String marketplaceAddress,
     required PinataService pinataService,
+    required WalletService walletService,
+    required WalletStorageService storageService,
   }) async {
     final abiString =
         await rootBundle.loadString('assets/contracts/NFTMarketplace.json');
@@ -44,16 +54,23 @@ class CollectionRepository {
       marketplaceAddress: marketplaceAddress,
       contract: contract,
       pinataService: pinataService,
+      walletService: walletService,
+      storageService: storageService,
     );
   }
 
   Future<List<Collection>> fetchCollections() async {
     try {
       final function = _contract.function('fetchCollections');
+
+      // Add error handling for the contract call
       final result = await _client.call(
         contract: _contract,
         function: function,
         params: [],
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => throw Exception('Contract call timeout'),
       );
 
       if (result.isEmpty) return [];
@@ -61,24 +78,34 @@ class CollectionRepository {
       debugPrint('Raw contract result: $result');
 
       final collectionsData = result[0] as List<dynamic>;
+      final collections = <Collection>[];
 
-      final collections = collectionsData
-          .map((data) {
-            try {
-              return Collection.fromContract(data);
-            } catch (e) {
-              print('Error parsing collection data: $e');
-              print('Problematic data: $data');
-              return null;
-            }
-          })
-          .whereType<Collection>()
-          .toList();
+      for (var data in collectionsData) {
+        try {
+          if (data is List && data.length >= 2) {
+            // Ensure we have both basic info and details
+            final collection = Collection.fromContract(data);
+            collections.add(collection);
+          } else {
+            debugPrint('Invalid collection data structure: $data');
+          }
+        } catch (e) {
+          debugPrint('Error parsing collection: $e');
+          debugPrint('Problematic data: $data');
+          // Continue to next item instead of failing completely
+          continue;
+        }
+      }
 
       return collections;
-    } catch (e, stackTrace) {
-      print('Error fetching collections: $e');
-      print('Stack trace: $stackTrace');
+    } catch (e) {
+      if (e.toString().contains('Value not in range')) {
+        debugPrint(
+            'Contract data format mismatch. Ensuring proper ABI and data structure.');
+        // You might want to implement a retry mechanism here
+        return [];
+      }
+      debugPrint('Error fetching collections: $e');
       rethrow;
     }
   }
@@ -299,6 +326,72 @@ class CollectionRepository {
     } catch (e, stackTrace) {
       debugPrint('Error fetching collection items: $e');
       debugPrint('Stack trace: $stackTrace');
+      rethrow;
+    }
+  }
+
+  Future<List<Collection>> fetchCreatedCollections() async {
+    try {
+      if (!_walletService.isConnected) {
+        throw Exception('Wallet not connected');
+      }
+
+      final function = _contract.function('fetchUserCreatedCollections');
+      final result = await _client.call(
+        contract: _contract,
+        function: function,
+        params: [_walletService.address],
+      );
+
+      if (result.isEmpty) return [];
+
+      final collectionsData = result[0] as List<dynamic>;
+      return collectionsData
+          .map((data) => Collection.fromContract(data))
+          .toList();
+    } catch (e) {
+      debugPrint('Error fetching created collections: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<String>> fetchCategories() async {
+    try {
+      final function = _contract.function('getCategories');
+      final result = await _client.call(
+        contract: _contract,
+        function: function,
+        params: [],
+      );
+
+      if (result.isEmpty) return [];
+
+      final categories = (result[0] as List<dynamic>).cast<String>();
+      return categories;
+    } catch (e) {
+      debugPrint('Error fetching categories: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Collection>> fetchCollectionsByCategory(String category) async {
+    try {
+      final function = _contract.function('fetchCollectionsByCategory');
+      final result = await _client.call(
+        contract: _contract,
+        function: function,
+        params: [category],
+      );
+
+      if (result.isEmpty) return [];
+
+      final collections = (result[0] as List<dynamic>)
+          .map((data) => Collection.fromContract(data))
+          .toList();
+
+      return collections;
+    } catch (e) {
+      debugPrint('Error fetching collections by category: $e');
       rethrow;
     }
   }
