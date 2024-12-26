@@ -48,6 +48,13 @@ class _CreateNFTScreenState extends State<CreateNFTScreen> {
     _isWalletConnected = GetIt.I<WalletService>().isConnected;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profileState = context.read<ProfileBloc>().state;
+      if (profileState is ProfileLoaded) {
+        setState(() {
+          _isWalletConnected = true;
+        });
+        _checkWalletAndLoadData();
+      }
       _initializeWallet();
     });
     // _loadUserCollections();

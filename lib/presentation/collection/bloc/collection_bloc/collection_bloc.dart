@@ -21,6 +21,7 @@ class CollectionBloc extends Bloc<CollectionEvent, CollectionState> {
     on<UpdateCategoryFilter>(_onUpdateCategoryFilter);
     on<LoadUserCollections>(_onLoadUserCollections);
     on<FilterCollectionsByCategory>(_onFilterCollectionsByCategory);
+    // on<SearchCollections>(_onSearchCollections); // Add this line
   }
 
   void _onFilterCollectionsByCategory(
@@ -112,4 +113,27 @@ class CollectionBloc extends Bloc<CollectionEvent, CollectionState> {
       emit(currentState.copyWith(selectedCategoryFilter: event.filter));
     }
   }
+
+  // void _onSearchCollections(
+  //   SearchCollections event,
+  //   Emitter<CollectionState> emit,
+  // ) async {
+  //   try {
+  //     emit(CollectionSearchLoading());
+
+  //     final results = await repository.searchCollections(
+  //       searchTerm: event.searchTerm,
+  //       category: event.category,
+  //       minFloorPrice: event.minFloorPrice,
+  //       maxFloorPrice: event.maxFloorPrice,
+  //     );
+
+  //     emit(CollectionSearchLoaded(
+  //       searchResults: results,
+  //       searchTerm: event.searchTerm,
+  //     ));
+  //   } catch (e) {
+  //     emit(CollectionSearchError(e.toString()));
+  //   }
+  // }
 }

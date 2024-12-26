@@ -12,6 +12,7 @@ import 'package:nft_marketplace_mobile/presentation/collection/bloc/create_colle
 import 'package:nft_marketplace_mobile/presentation/collection/bloc/user_collection_bloc/user_collection_bloc.dart';
 import 'package:nft_marketplace_mobile/presentation/nft/bloc/create_market_item_bloc.dart';
 import 'package:nft_marketplace_mobile/presentation/profile/bloc/profile_bloc.dart';
+import 'package:nft_marketplace_mobile/presentation/search/bloc/search_collection_bloc.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
@@ -106,6 +107,10 @@ Future<void> initializeDependencies() async {
   // Register ProfileBloc
   getIt.registerFactory<ProfileBloc>(
     () => ProfileBloc(repository: getIt<ProfileRepository>()),
+  );
+
+  getIt.registerFactory<SearchCollectionBloc>(
+    () => SearchCollectionBloc(repository: getIt<CollectionRepository>()),
   );
 
   // Add other blocs here

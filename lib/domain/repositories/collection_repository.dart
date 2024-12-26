@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' show pow;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -392,6 +393,71 @@ class CollectionRepository {
       return collections;
     } catch (e) {
       debugPrint('Error fetching collections by category: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Collection>> searchCollections({
+    required String searchTerm,
+    String? category,
+    double? minFloorPrice,
+    double? maxFloorPrice,
+  }) async {
+    try {
+      final function = _contract.function('searchCollectionsWithFilters');
+
+      // Convert floor prices to Wei
+      final minPriceWei = minFloorPrice != null
+          ? BigInt.from(minFloorPrice * pow(10, 18))
+          : BigInt.zero;
+      final maxPriceWei = maxFloorPrice != null
+          ? BigInt.from(maxFloorPrice * pow(10, 18))
+          : BigInt.zero;
+
+      final result = await _client.call(
+        contract: _contract,
+        function: function,
+        params: [
+          searchTerm,
+          category ?? '',
+          minPriceWei,
+          maxPriceWei,
+        ],
+      );
+
+      if (result.isEmpty) return [];
+
+      final searchResults = result[0] as List<dynamic>;
+      final collections = <Collection>[];
+
+      for (var data in searchResults) {
+        try {
+          // Convert the search result to collection format
+          final collection = Collection(
+            address: (data[0] as EthereumAddress).hex,
+            name: data[1] as String,
+            symbol: data[2] as String,
+            category: data[3] as String,
+            owner: '', // Search results don't include owner
+            isActive: data[6] as bool,
+            createdAt:
+                DateTime.now(), // Search results don't include creation date
+            baseURI: '', // Search results don't include baseURI
+            totalSupply: (data[4] as BigInt).toInt(),
+            floorPrice: data[5] as BigInt,
+            totalVolume: BigInt.zero, // Search results don't include volume
+            ownerCount: 0, // Search results don't include owner count
+          );
+          collections.add(collection);
+        } catch (e) {
+          debugPrint('Error parsing collection from search: $e');
+          continue;
+        }
+      }
+
+      return collections;
+    } catch (e) {
+      debugPrint('Error searching collections: $e');
       rethrow;
     }
   }

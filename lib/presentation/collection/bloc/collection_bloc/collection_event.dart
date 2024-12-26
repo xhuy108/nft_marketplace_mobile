@@ -48,3 +48,21 @@ class FilterCollectionsByCategory extends CollectionEvent {
   @override
   List<Object> get props => [category];
 }
+
+class SearchCollections extends CollectionEvent {
+  final String searchTerm;
+  final String? category;
+  final double? minFloorPrice;
+  final double? maxFloorPrice;
+
+  const SearchCollections({
+    required this.searchTerm,
+    this.category,
+    this.minFloorPrice,
+    this.maxFloorPrice,
+  });
+
+  @override
+  List<Object> get props =>
+      [searchTerm, category ?? '', minFloorPrice ?? 0, maxFloorPrice ?? 0];
+}

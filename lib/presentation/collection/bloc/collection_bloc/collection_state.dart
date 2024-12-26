@@ -79,3 +79,27 @@ class UserCollectionsLoaded extends CollectionState {
   @override
   List<Object> get props => [collections];
 }
+
+class CollectionSearchLoading extends CollectionState {}
+
+class CollectionSearchLoaded extends CollectionState {
+  final List<Collection> searchResults;
+  final String searchTerm;
+
+  const CollectionSearchLoaded({
+    required this.searchResults,
+    required this.searchTerm,
+  });
+
+  @override
+  List<Object> get props => [searchResults, searchTerm];
+}
+
+class CollectionSearchError extends CollectionState {
+  final String message;
+
+  const CollectionSearchError(this.message);
+
+  @override
+  List<Object> get props => [message];
+}

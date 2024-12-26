@@ -66,6 +66,8 @@ class Collection extends Equatable {
         throw FormatException('Invalid basic data structure');
       }
 
+      print('Basic: $basic');
+
       return Collection(
         address: (basic[0] as EthereumAddress).hex,
         name: basic[1] as String? ?? '',
