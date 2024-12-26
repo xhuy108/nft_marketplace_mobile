@@ -65,7 +65,7 @@ Với niềm đam mê về công nghệ blockchain và mong muốn đưa NFT đ�
    Mở file chính của dự án, chọn Start Debugging
    ```
 
-### Cài đặt Backend (Node.js + Ethereum)
+### Cài đặt Backend (Solidity + Ethereum + Hardhat)
 
 #### Yêu cầu hệ thống:
 
