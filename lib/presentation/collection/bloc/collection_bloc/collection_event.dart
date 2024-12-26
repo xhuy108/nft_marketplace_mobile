@@ -35,3 +35,16 @@ class UpdateCategoryFilter extends CollectionEvent {
   @override
   List<Object> get props => [filter];
 }
+
+class LoadUserCollections extends CollectionEvent {}
+
+class LoadCategories extends CollectionEvent {}
+
+class FilterCollectionsByCategory extends CollectionEvent {
+  final String category;
+
+  const FilterCollectionsByCategory(this.category);
+
+  @override
+  List<Object> get props => [category];
+}

@@ -11,8 +11,8 @@ import 'package:nft_marketplace_mobile/domain/entities/category.dart';
 import 'package:nft_marketplace_mobile/presentation/collection/bloc/collection_bloc/collection_bloc.dart';
 import 'package:nft_marketplace_mobile/presentation/collection/bloc/create_collection_bloc/create_collection_bloc.dart';
 import 'package:nft_marketplace_mobile/presentation/nft/pages/create_nft_screen.dart';
+import 'package:nft_marketplace_mobile/presentation/profile/bloc/profile_bloc.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
-import 'package:web3dart/web3dart.dart';
 
 class CreateCollectionPage extends StatefulWidget {
   const CreateCollectionPage({super.key});
@@ -144,6 +144,7 @@ class _CreateCollectionPageState extends State<CreateCollectionPage> {
             );
 
             context.read<CollectionBloc>().add(LoadCollections());
+            context.read<ProfileBloc>().add(LoadProfile());
 
             _navigateBack();
           } else if (state is CreateCollectionFailure) {

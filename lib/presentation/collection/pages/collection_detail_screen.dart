@@ -4,8 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:nft_marketplace_mobile/domain/entities/market_item.dart';
 import 'package:nft_marketplace_mobile/domain/entities/nft_collection.dart';
+import 'package:nft_marketplace_mobile/domain/entities/nft_item.dart';
 import 'package:nft_marketplace_mobile/presentation/collection/bloc/collection_items_bloc/collection_items_bloc.dart';
-import 'package:nft_marketplace_mobile/presentation/nft_item/pages/item_detail_screen.dart';
+import 'package:nft_marketplace_mobile/presentation/nft/pages/item_detail_screen.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 
 class CollectionDetailScreen extends StatefulWidget {
@@ -162,7 +163,7 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen>
                         crossAxisCount: 2,
                         mainAxisSpacing: 16,
                         crossAxisSpacing: 16,
-                        childAspectRatio: 0.7,
+                        childAspectRatio: 0.8,
                       ),
                       itemBuilder: (context, index) =>
                           _buildItemCard(state.items[index]),
@@ -186,13 +187,7 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen>
   Widget _buildItemCard(MarketItem item) {
     return GestureDetector(
       onTap: () {
-        // Convert MarketItem to NFTItem for detail screen
-        final nftItem = NFTItem(
-          name: item.metadata?.name ?? '#${item.tokenId}',
-          image: item.metadata?.imageUrl ?? 'assets/images/placeholder.png',
-          price: '${item.formattedPrice} ETH',
-          collectionName: widget.collection.name,
-        );
+        final nftItem = NFTItem.fromMarketItem(item, widget.collection.name);
 
         PersistentNavBarNavigator.pushNewScreen(
           context,

@@ -1,4 +1,3 @@
-// models/collection.dart
 import 'package:equatable/equatable.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -14,18 +13,14 @@ class Collection extends Equatable {
   final DateTime createdAt;
   final String baseURI;
   final int totalSupply;
-
-  // Statistics
   final BigInt floorPrice;
   final BigInt totalVolume;
   final int ownerCount;
 
-  // Computed properties for UI
   String? get image {
     if (baseURI.isEmpty) return null;
 
     if (baseURI.startsWith('ipfs://')) {
-      // Convert IPFS URI to HTTP URL
       final ipfsHash = baseURI.replaceFirst('ipfs://', '');
       return '$IPFS_GATEWAY$ipfsHash';
     }
@@ -43,7 +38,7 @@ class Collection extends Equatable {
           .toStringAsFixed(2)
       : '0';
 
-  double get changePercentage => 0; // You can add this data later if needed
+  double get changePercentage => 0;
 
   const Collection({
     required this.address,
@@ -62,36 +57,33 @@ class Collection extends Equatable {
 
   factory Collection.fromContract(List<dynamic> data) {
     try {
-      if (data is! List) {
-        throw FormatException('Data must be a List');
+      if (data.length < 2) {
+        throw FormatException('Invalid data structure: insufficient elements');
       }
 
-      // Extract basic collection data
       final basic = data[0] as List<dynamic>;
+      if (basic.length < 9) {
+        throw FormatException('Invalid basic data structure');
+      }
 
       return Collection(
         address: (basic[0] as EthereumAddress).hex,
-        name: basic[1] as String,
-        symbol: basic[2] as String,
-        category: basic[3] as String,
+        name: basic[1] as String? ?? '',
+        symbol: basic[2] as String? ?? '',
+        category: basic[3] as String? ?? '',
         owner: (basic[4] as EthereumAddress).hex,
-        isActive: basic[5] as bool,
+        isActive: basic[5] as bool? ?? false,
         createdAt: DateTime.fromMillisecondsSinceEpoch(
-          (basic[6] as BigInt).toInt() * 1000,
+          ((basic[6] as BigInt?) ?? BigInt.zero).toInt() * 1000,
         ),
-        baseURI: basic[7] as String,
-        totalSupply: (basic[8] as BigInt).toInt(),
-
-        // Extract statistics from CollectionDetails
-        floorPrice: data[1] as BigInt,
-        totalVolume: data[2] as BigInt,
-        ownerCount: (data[3] as BigInt).toInt(),
+        baseURI: basic[7] as String? ?? '',
+        totalSupply: ((basic[8] as BigInt?) ?? BigInt.zero).toInt(),
+        floorPrice: (data[1] as BigInt?) ?? BigInt.zero,
+        totalVolume: (data[2] as BigInt?) ?? BigInt.zero,
+        ownerCount: ((data[3] as BigInt?) ?? BigInt.zero).toInt(),
       );
-    } catch (e, stackTrace) {
+    } catch (e) {
       print('Error parsing collection: $e');
-      print('Stack trace: $stackTrace');
-      print('Data structure: ${data.runtimeType}');
-      print('Data content: $data');
       rethrow;
     }
   }

@@ -17,6 +17,7 @@ class CreateMarketItemBloc
     required this.repository,
   }) : super(CreateMarketItemInitial()) {
     on<CreateMarketItemSubmitted>(_onCreateMarketItemSubmitted);
+    on<PurchaseMarketItem>(_onPurchaseMarketItem);
   }
 
   Future<void> _onCreateMarketItemSubmitted(
@@ -41,6 +42,8 @@ class CreateMarketItemBloc
 
       emit(CreateMarketItemLoading(message: 'Creating market item...'));
 
+      print('credentials: ${event.credentials.address}');
+
       // Create market item
       final tokenId = await repository.createMarketItem(
         collectionAddress: event.collection.address,
@@ -52,6 +55,26 @@ class CreateMarketItemBloc
       emit(CreateMarketItemSuccess(tokenId: tokenId));
     } catch (e) {
       emit(CreateMarketItemFailure(message: e.toString()));
+    }
+  }
+
+  Future<void> _onPurchaseMarketItem(
+    PurchaseMarketItem event,
+    Emitter<CreateMarketItemState> emit,
+  ) async {
+    try {
+      emit(const PurchaseMarketItemLoading());
+
+      await repository.purchaseMarketItem(
+        collectionAddress: event.collectionAddress,
+        tokenId: event.tokenId,
+        price: event.price,
+        credentials: event.credentials,
+      );
+
+      emit(const PurchaseMarketItemSuccess());
+    } catch (e) {
+      emit(PurchaseMarketItemFailure(e.toString()));
     }
   }
 }

@@ -1,8 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:gap/gap.dart';
 import 'package:nft_marketplace_mobile/config/themes/app_palette.dart';
+import 'package:nft_marketplace_mobile/core/constants/app_constants.dart';
 import 'package:nft_marketplace_mobile/domain/entities/nft_collection.dart';
 import 'package:nft_marketplace_mobile/presentation/collection/pages/collection_detail_screen.dart';
 
@@ -25,27 +25,17 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   String selectedTimeFilter = '24h';
   String selectedChainFilter = 'All chains';
   String selectedCategoryFilter = 'All categories';
-  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
+
     _loadCollections();
-    _startRefreshTimer();
   }
 
   @override
   void dispose() {
-    _refreshTimer?.cancel();
     super.dispose();
-  }
-
-  void _startRefreshTimer() {
-    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      if (mounted) {
-        _loadCollections();
-      }
-    });
   }
 
   void _loadCollections() {
@@ -152,27 +142,29 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       ),
 
                       // Filter Buttons
-                      Container(
-                        height: 52, // Adjusted height to match design
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Row(
-                            children: [
-                              // Update your filter buttons calls
-                              _buildFilterButton('24h', FilterType.time),
-                              const SizedBox(width: 12),
+                      // Container(
+                      //   height: 52, // Adjusted height to match design
+                      //   child: SingleChildScrollView(
+                      //     scrollDirection: Axis.horizontal,
+                      //     padding: const EdgeInsets.symmetric(horizontal: 16),
+                      //     child: Row(
+                      //       children: [
+                      //         // Update your filter buttons calls
+                      //         _buildFilterButton('24h', FilterType.time),
+                      //         const SizedBox(width: 12),
 
-                              _buildFilterButton(
-                                  'All chains', FilterType.chain),
-                              const SizedBox(width: 12),
+                      //         _buildFilterButton(
+                      //             'All chains', FilterType.chain),
+                      //         const SizedBox(width: 12),
 
-                              _buildFilterButton(
-                                  'All categories', FilterType.category),
-                            ],
-                          ),
-                        ),
-                      ),
+                      //         _buildFilterButton(
+                      //             'All categories', FilterType.category),
+                      //       ],
+                      //     ),
+                      //   ),
+                      // ),
+                      // Filter Buttons
+                      _buildFilterButtons(),
                     ],
                   ),
                 ),
@@ -222,58 +214,61 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             ),
 
             // Collection List
-            BlocBuilder<CollectionBloc, CollectionState>(
-              builder: (context, state) {
-                if (state is CollectionLoading) {
-                  return const SliverFillRemaining(
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
+            // BlocBuilder<CollectionBloc, CollectionState>(
+            //   builder: (context, state) {
+            //     if (state is CollectionLoading) {
+            //       return const SliverFillRemaining(
+            //         child: Center(child: CircularProgressIndicator()),
+            //       );
+            //     }
 
-                if (state is CollectionError) {
-                  return SliverFillRemaining(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(state.message),
-                          ElevatedButton(
-                            onPressed: () {
-                              context
-                                  .read<CollectionBloc>()
-                                  .add(LoadCollections());
-                            },
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
+            //     if (state is CollectionError) {
+            //       return SliverFillRemaining(
+            //         child: Center(
+            //           child: Column(
+            //             mainAxisAlignment: MainAxisAlignment.center,
+            //             children: [
+            //               Text(state.message),
+            //               ElevatedButton(
+            //                 onPressed: () {
+            //                   context
+            //                       .read<CollectionBloc>()
+            //                       .add(LoadCollections());
+            //                 },
+            //                 child: const Text('Retry'),
+            //               ),
+            //             ],
+            //           ),
+            //         ),
+            //       );
+            //     }
 
-                if (state is CollectionLoaded) {
-                  if (state.collections.isEmpty) {
-                    return const SliverFillRemaining(
-                      child: Center(child: Text('No collections found')),
-                    );
-                  }
+            //     if (state is CollectionLoaded) {
+            //       final displayCollections = state.filteredCollections;
 
-                  return SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => _buildCollectionListItem(
-                        state.collections[index],
-                        index + 1,
-                      ),
-                      childCount: state.collections.length,
-                    ),
-                  );
-                }
+            //       if (displayCollections.isEmpty) {
+            //         return const SliverFillRemaining(
+            //           child: Center(child: Text('No collections found')),
+            //         );
+            //       }
 
-                return const SliverFillRemaining(
-                  child: Center(child: Text('No collections available')),
-                );
-              },
-            ),
+            //       return SliverList(
+            //         delegate: SliverChildBuilderDelegate(
+            //           (context, index) => _buildCollectionListItem(
+            //             displayCollections[index],
+            //             index + 1,
+            //           ),
+            //           childCount: displayCollections.length,
+            //         ),
+            //       );
+            //     }
+
+            //     return const SliverFillRemaining(
+            //       child: Center(child: Text('No collections available')),
+            //     );
+            //   },
+            // ),
+            _buildCollectionsList(),
           ],
         ),
       ),
@@ -324,11 +319,30 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     );
   }
 
+  Widget _buildFilterButtons() {
+    return Container(
+      height: 52,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        child: Row(
+          children: [
+            _buildFilterButton(selectedTimeFilter, FilterType.time),
+            Gap(12.w),
+            _buildFilterButton(selectedChainFilter, FilterType.chain),
+            Gap(12.w),
+            _buildFilterButton(selectedCategoryFilter, FilterType.category),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildFilterButton(String text, FilterType type) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: Colors.grey[300]!),
         boxShadow: [
           BoxShadow(
@@ -342,7 +356,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           onTap: () {
             showModalBottomSheet(
               context: context,
@@ -351,7 +365,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             );
           },
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -359,18 +373,94 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   text,
                   style: TextStyle(
                     color: Colors.grey[800],
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(width: 4),
-                Icon(Icons.keyboard_arrow_down,
-                    size: 18, color: Colors.grey[700]),
+                Gap(4.w),
+                Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 18.sp,
+                  color: Colors.grey[700],
+                ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCollectionsList() {
+    return BlocBuilder<CollectionBloc, CollectionState>(
+      builder: (context, state) {
+        if (state is CollectionLoading) {
+          return const SliverFillRemaining(
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (state is CollectionError) {
+          return SliverFillRemaining(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(state.message),
+                  Gap(8.h),
+                  ElevatedButton(
+                    onPressed: _loadCollections,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        if (state is CollectionLoaded) {
+          final displayCollections = state.filteredCollections;
+
+          if (displayCollections.isEmpty) {
+            return SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.search_off,
+                      size: 48.sp,
+                      color: Colors.grey[400],
+                    ),
+                    Gap(8.h),
+                    Text(
+                      'No collections found for this category',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 16.sp,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => _buildCollectionListItem(
+                displayCollections[index],
+                index + 1,
+              ),
+              childCount: displayCollections.length,
+            ),
+          );
+        }
+
+        return const SliverFillRemaining(
+          child: Center(child: Text('No collections available')),
+        );
+      },
     );
   }
 
@@ -434,19 +524,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       case FilterType.chain:
         final chains = [
           {'name': 'All chains', 'icon': Icons.link},
-          {'name': 'Arbitrum', 'icon': Icons.circle_outlined},
-          {'name': 'Arbitrum Nova', 'icon': Icons.circle_outlined},
-          {'name': 'Avalanche', 'icon': Icons.abc},
-          {'name': 'B3', 'icon': Icons.link},
-          {'name': 'Base', 'icon': Icons.circle_outlined},
-          {'name': 'Blast', 'icon': Icons.link},
           {'name': 'Ethereum', 'icon': Icons.currency_bitcoin},
-          {'name': 'Klaytn', 'icon': Icons.hexagon_outlined},
-          {'name': 'Optimism', 'icon': Icons.circle_outlined},
           {'name': 'Polygon', 'icon': Icons.hexagon_outlined},
-          {'name': 'Sei', 'icon': Icons.link},
-          {'name': 'Solana', 'icon': Icons.compare_arrows},
-          {'name': 'Zora', 'icon': Icons.circle},
+          // Add other chains as needed
         ];
         return Column(
           children: chains
@@ -465,17 +545,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         );
 
       case FilterType.category:
-        final categories = [
-          'All categories',
-          'Art',
-          'Gaming',
-          'Memberships',
-          'Music',
-          'PFPs',
-          'Photography'
-        ];
         return Column(
-          children: categories
+          children: AppConstants.nftCategories
               .map((category) => _buildFilterOption(
                     text: category,
                     isSelected: selectedCategoryFilter == category,
@@ -483,6 +554,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       setState(() {
                         selectedCategoryFilter = category;
                       });
+                      context.read<CollectionBloc>().add(
+                            FilterCollectionsByCategory(category),
+                          );
                       Navigator.pop(context);
                     },
                   ))
