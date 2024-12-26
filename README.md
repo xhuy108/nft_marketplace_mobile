@@ -75,6 +75,7 @@ Với niềm đam mê về công nghệ blockchain và mong muốn đưa NFT đ�
 - MetaMask (ví Ethereum)
   
 ### Cấu trúc dự án
+```
 nft-marketplace-contracts/
 ├── artifacts/               # Compiled artifacts
 ├── cache/                  # Hardhat cache
@@ -93,6 +94,7 @@ nft-marketplace-contracts/
 ├── package-lock.json     # Dependencies lock
 ├── README.md             # Documentation
 └── test-connection.js    # Network test
+```
 
 #### Cài đặt:
 
@@ -139,3 +141,4 @@ nft-marketplace-contracts/
 ## Hỗ trợ và góp ý
 
 Nếu bạn gặp vấn đề hoặc có đóng góp, vui lòng tạo issue trong repository hoặc liên hệ team phát triển.
+
